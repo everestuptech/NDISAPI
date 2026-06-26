@@ -1,0 +1,6 @@
+@NdisAgency_HostAddress = http://localhost:5017
+
+GET {{NdisAgency_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
