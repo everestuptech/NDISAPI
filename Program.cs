@@ -41,8 +41,17 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    options.AddPolicy("PublicSites", policy =>
+    {
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+        if (origins is { Length: > 0 })
+            policy.WithOrigins(origins).AllowAnyMethod().AllowAnyHeader();
+        else if (builder.Environment.IsDevelopment())
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        else
+            throw new InvalidOperationException(
+                "Cors:AllowedOrigins must be configured in production (appsettings.Production.json or environment).");
+    });
 });
 
 builder.Services.AddScoped<PageRepository>();
@@ -102,7 +111,7 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+app.UseCors("PublicSites");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
